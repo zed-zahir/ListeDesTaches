@@ -71,9 +71,13 @@ class ResetTasksWorker(appContext: Context, workerParams: WorkerParameters) :
 
     private fun resetTasks() {
         // Utiliser SharedPreferences pour sauvegarder une nouvelle liste de tâches
-        val sharedPrefs = applicationContext.getSharedPreferences("todo_prefs", Context.MODE_PRIVATE)
+        val sharedPrefs =
+            applicationContext.getSharedPreferences("todo_prefs", Context.MODE_PRIVATE)
         val editor = sharedPrefs.edit()
-        editor.putStringSet("tasks", setOf("Brosser les dents", "Faire de l'exercice", "Lire un livre"))
+        editor.putStringSet(
+            "tasks",
+            setOf("Brosser les dents", "Faire de l'exercice", "Lire un livre")
+        )
         editor.apply()
     }
 }
@@ -82,7 +86,14 @@ class ResetTasksWorker(appContext: Context, workerParams: WorkerParameters) :
 fun TodoList() {
     val context = LocalContext.current
     val sharedPrefs = context.getSharedPreferences("todo_prefs", Context.MODE_PRIVATE)
-    var tasks by remember { mutableStateOf(sharedPrefs.getStringSet("tasks", setOf("Brosser les dents", "Faire de l'exercice", "Lire un livre"))?.toMutableList() ?: mutableListOf()) }
+    var tasks by remember {
+        mutableStateOf(
+            sharedPrefs.getStringSet(
+                "tasks",
+                setOf("Brosser les dents", "Faire de l'exercice", "Lire un livre")
+            )?.toMutableList() ?: mutableListOf()
+        )
+    }
 
     // Sauvegarder les modifications des tâches lorsque la liste change
     fun saveTasks(newTasks: List<String>) {
@@ -94,19 +105,27 @@ fun TodoList() {
     // Afficher les tâches dans une liste et permettre de cliquer pour les supprimer
     Column(modifier = Modifier.fillMaxSize()) {
         LazyColumn {
-            items(items = tasks) { task ->
-                Text(
+            items(tasks) { task ->
+                ClickableText(
                     text = task,
-                    fontSize = 18.sp,
-                    textDecoration = TextDecoration.None,
-                    modifier = Modifier
-                        .clickable {
-                            tasks = tasks.toMutableList().also { it.remove(task) }
-                            saveTasks(tasks) // Sauvegarder après suppression
-                        }
-                        .fillMaxSize()
+                    onClick = {
+                        tasks = tasks.toMutableList().also { it.remove(task) }
+                        saveTasks(tasks) // Sauvegarder après suppression
+                    }
                 )
             }
         }
     }
+}
+
+@Composable
+fun ClickableText(text: String, onClick: () -> Unit) {
+    Text(
+        text = text,
+        fontSize = 18.sp,
+        textDecoration = TextDecoration.None,
+        modifier = Modifier
+            .clickable { onClick() }
+            .fillMaxSize()
+    )
 }
